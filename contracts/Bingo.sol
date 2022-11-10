@@ -15,9 +15,9 @@ contract Bingo is Ownable {
         bool[255] numbers;
     }
 
-    mapping(uint256 => mapping(address => Board)) playerBoards;
+    mapping(uint256 => mapping(address => Board)) internal playerBoards;
 
-    Round[] private rounds;
+    Round[] internal rounds;
     uint256 private feeAmount;
     
     uint256 fees;
@@ -65,7 +65,7 @@ contract Bingo is Ownable {
        5 |-19--|-20--|-21--|-22--|-23--|
 
        diagonal from left 1,6 to rigth 5,10 = 11
-       diagonal from right 5,6 to rigth 1,10 = 12
+       diagonal from right 5,6 to left 1,10 = 12
 
     */
     function bingo(uint checkIndex) external {
@@ -84,6 +84,10 @@ contract Bingo is Ownable {
 
     function getBoardForRound(uint256 round, address player) public view returns(Board memory){
         return playerBoards[round][player];
+    }
+
+    function getRound(uint index) public view returns(Round memory){
+        return rounds[index];
     }
 
     //***************************************************************** SETTERS ************************************************************** */
