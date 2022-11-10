@@ -8,7 +8,6 @@ contract Bingo is Ownable {
     struct Board {
         uint8[24] numbers;
         uint256 forRounds;
-        uint256 atRound;
     }
 
     struct Round {
@@ -32,23 +31,22 @@ contract Bingo is Ownable {
     constructor(address _feeAddress){
         feeAddress = _feeAddress;
         bool[255] memory nums;
-        Round memory genesisRound = Round(block.timestamp, nums);
+        Round memory genesisRound = Round(0, nums);
         rounds.push(genesisRound);
     }
 
     function buyBoard(uint256 forRounds) external returns(Board memory b){
-        require(playerBoards[rounds.length][msg.sender].forRounds < rounds.length,"Bingo::buyBoard:one board per round");
+        require(playerBoards[rounds.length-1][msg.sender].forRounds < rounds.length,"Bingo::buyBoard:one board per round");
         require(IERC20(feeAddress).transferFrom(_msgSender(), address(this), feeAmount), "Bingo::buyBoard:fee payment failed");
         fees = fees + feeAmount;
         b.numbers = _generateBoardNumbers();
-        b.forRounds = rounds.length+forRounds;
-        b.atRound = rounds.length;
+        b.forRounds = (rounds.length-1)+forRounds;
         //TODO emit Event
         return b;
     }
 
     function drawNumber() external onlyOwner() {
-        Round storage r = rounds[rounds.length];
+        Round storage r = rounds[rounds.length-1];
         require(r.lastDraw+minDrawDuration < block.timestamp, "Bingo::drawNumber:please await minimum draw duration");
         uint8 num = _generateRoundNumber();
         if(r.numbers[num] == false){
@@ -70,7 +68,7 @@ contract Bingo is Ownable {
 
     */
     function bingo(uint checkIndex) external {
-        Board memory b = playerBoards[rounds.length][msg.sender];
+        Board memory b = playerBoards[rounds.length-1][msg.sender];
         require(b.forRounds >= rounds.length,"Bingo::bingo:no ticket found");
         bool hasBingo = _checkBingo(checkIndex, b);
         if(hasBingo){
@@ -124,7 +122,7 @@ contract Bingo is Ownable {
     }
 
     function _checkBingo(uint index, Board memory b) internal view returns(bool) {
-        Round memory r = rounds[rounds.length];
+        Round memory r = rounds[rounds.length-1];
         if(index == 3 || index == 8 || index == 11 || index == 12){
             uint[4] memory indexes;
             if (index == 3) {
@@ -178,12 +176,14 @@ contract Bingo is Ownable {
         }
         return true; //risky move
     }
+
     function _fillShortRow(uint startIndex) internal pure returns(uint[4] memory indexes){
         indexes[0] = startIndex;
         indexes[1] = startIndex+1;
         indexes[2] = startIndex+2;
         indexes[3] = startIndex+3;
     }
+
     function _fillFullRow(uint startIndex) internal pure returns(uint[5] memory indexes){
         indexes[0] = startIndex;
         indexes[1] = startIndex+1;
@@ -191,6 +191,7 @@ contract Bingo is Ownable {
         indexes[3] = startIndex+3;
         indexes[4] = startIndex+4;
     }
+
     function _fillFullColumn(uint startIndex) internal pure returns(uint[5] memory indexes){
         indexes[0] = startIndex;
         indexes[1] = startIndex+5;
