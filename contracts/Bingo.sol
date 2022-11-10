@@ -31,7 +31,7 @@ contract Bingo is Ownable {
     constructor(address _feeAddress){
         feeAddress = _feeAddress;
         bool[255] memory nums;
-        Round memory genesisRound = Round(0, nums);
+        Round memory genesisRound = Round(block.timestamp, nums);
         rounds.push(genesisRound);
     }
 
@@ -73,6 +73,9 @@ contract Bingo is Ownable {
         bool hasBingo = _checkBingo(checkIndex, b);
         if(hasBingo){
             IERC20(feeAddress).transfer(_msgSender(), fees);
+            bool[255] memory nums;
+            Round memory r = Round(block.timestamp, nums);
+            rounds.push(r);
         }
     }
 
