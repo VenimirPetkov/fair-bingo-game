@@ -41,6 +41,7 @@ contract Bingo is Ownable {
         fees = fees + feeAmount;
         b.numbers = _generateBoardNumbers();
         b.forRounds = (rounds.length-1)+forRounds;
+        playerBoards[rounds.length-1][msg.sender] = b;
         //TODO emit Event
         return b;
     }
