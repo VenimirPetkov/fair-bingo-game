@@ -1,1 +1,2 @@
 # fair-bingo-game
+## PLEASE DO NOT USE THIS CODE IN PRODUCTION OR MAINNET !!!
