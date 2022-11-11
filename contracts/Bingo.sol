@@ -176,7 +176,7 @@ contract Bingo is Ownable {
                 indexes = _fillFullColumn(4);
             }
 
-            for (uint256 i = 0; i < 5; i++) {
+            for (uint256 i = 0; i < indexes.length; i++) {
                 if(r.numbers[b.numbers[indexes[i]]] == false){
                     return false;
                 }
