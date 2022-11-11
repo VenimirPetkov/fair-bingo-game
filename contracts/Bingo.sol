@@ -7,7 +7,7 @@ import "../interfaces/IERC20.sol";
 contract Bingo is Ownable {
     struct Board {
         uint8[24] numbers;
-        uint256 forRounds;
+        uint256 tillRound;
     }
 
     struct Round {
@@ -35,13 +35,13 @@ contract Bingo is Ownable {
         rounds.push(genesisRound);
     }
 
-    function buyBoard(uint256 forRounds) external returns(Board memory b){
-        require(playerBoards[rounds.length-1][msg.sender].forRounds < rounds.length,"Bingo::buyBoard:one board per round");
-        require(IERC20(feeAddress).transferFrom(_msgSender(), address(this), feeAmount), "Bingo::buyBoard:fee payment failed");
+    function buyBoard(uint256 _tillRound) external returns(Board memory b){
+        require(playerBoards[rounds.length-1][msg.sender].tillRound < rounds.length,"Bingo::buyBoard:one board per round");
+        require(IERC20(feeAddress).transferFrom(_msgSender(), address(this), feeAmount*_tillRound), "Bingo::buyBoard:fee payment failed");
         fees = fees + feeAmount;
         b.numbers = _generateBoardNumbers();
-        b.forRounds = (rounds.length-1)+forRounds;
-        playerBoards[rounds.length-1][msg.sender] = b;
+        b.tillRound = _tillRound;
+        playerBoards[_tillRound][msg.sender] = b;
         //TODO emit Event
         return b;
     }
@@ -68,9 +68,9 @@ contract Bingo is Ownable {
        diagonal from right 5,6 to left 1,10 = 12
 
     */
-    function bingo(uint checkIndex) external {
-        Board memory b = playerBoards[rounds.length-1][msg.sender];
-        require(b.forRounds >= rounds.length,"Bingo::bingo:no ticket found");
+    function bingo(uint checkIndex, uint round) external {
+        Board memory b = playerBoards[round][msg.sender];
+        require(b.tillRound >= rounds.length,"Bingo::bingo:no ticket found");
         bool hasBingo = _checkBingo(checkIndex, b);
         if(hasBingo){
             IERC20(feeAddress).transfer(_msgSender(), fees);

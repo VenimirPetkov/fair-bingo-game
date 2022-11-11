@@ -13,9 +13,19 @@ contract BingoTest is Bingo {
         }
     }
 
-    function addPlayerBoard(uint256 forRound, uint8[24] memory nums) external onlyOwner() returns(Board memory b) {
+    function addPlayerBoard(uint256 _tillRound, uint8[24] memory nums) external onlyOwner() returns(Board memory b) {
         b.numbers = nums;
-        b.forRounds = forRound;
-        playerBoards[rounds.length-1][msg.sender] = b;
+        b.tillRound = _tillRound;
+        playerBoards[_tillRound][msg.sender] = b;
+    }
+
+    function bingoTest(uint checkIndex, uint round) external {
+        Board memory b = playerBoards[round][msg.sender];
+        require(b.tillRound >= rounds.length,"Bingo::bingo:no ticket found");
+        bool hasBingo = _checkBingo(checkIndex, b);
+        require(hasBingo, "no bingo");
+        bool[255] memory nums;
+        Round memory r = Round(block.timestamp, nums);
+        rounds.push(r);
     }
 }
