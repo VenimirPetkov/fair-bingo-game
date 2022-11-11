@@ -9,8 +9,8 @@ contract("Integration tests", (accounts) => {
     BingoTestInstance = await BingoTest.deployed();
   });
 
-  describe("0.BingoTest", async () => {
-    it("1.should set numbers for bingo", async () =>{
+  describe("BingoTest", async () => {
+    it("should set numbers for bingo", async () =>{
         //Given
             let tx;
 
@@ -21,7 +21,7 @@ contract("Integration tests", (accounts) => {
         //Then
             assert.equal(true, tx.receipt.status , "Transaction was unsuccessfull!");
     });
-    it("1.should set player numbers for bingo", async () =>{
+    it("should set player numbers for bingo", async () =>{
       //Given
           let tx;
       //When

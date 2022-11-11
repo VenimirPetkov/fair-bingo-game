@@ -11,6 +11,7 @@ contract Bingo is Ownable {
     }
 
     struct Round {
+        uint256 joinTime;
         uint256 lastDraw;
         bool[255] numbers;
     }
@@ -18,27 +19,25 @@ contract Bingo is Ownable {
     mapping(uint256 => mapping(address => Board)) internal playerBoards;
 
     Round[] internal rounds;
-    uint256 private feeAmount;
+    uint256 internal feeAmount;
     
-    uint256 fees;
+    uint256 internal minJoin;
 
-    uint256 private minJoin;
-
-    uint256 private minDrawDuration;
+    uint256 internal minDrawDuration;
 
     address immutable public feeAddress;
 
     constructor(address _feeAddress){
         feeAddress = _feeAddress;
         bool[255] memory nums;
-        Round memory genesisRound = Round(block.timestamp, nums);
+        Round memory genesisRound = Round(block.timestamp+minJoin, block.timestamp, nums);
         rounds.push(genesisRound);
     }
 
     function buyBoard(uint256 _tillRound) external returns(Board memory b){
+        require(rounds[rounds.length-1].joinTime < block.timestamp,"Bingo::buyBoard:please await next round");
         require(playerBoards[rounds.length-1][msg.sender].tillRound < rounds.length,"Bingo::buyBoard:one board per round");
         require(IERC20(feeAddress).transferFrom(_msgSender(), address(this), feeAmount*_tillRound), "Bingo::buyBoard:fee payment failed");
-        fees = fees + feeAmount;
         b.numbers = _generateBoardNumbers();
         b.tillRound = _tillRound;
         playerBoards[_tillRound][msg.sender] = b;
@@ -73,9 +72,9 @@ contract Bingo is Ownable {
         require(b.tillRound >= rounds.length,"Bingo::bingo:no ticket found");
         bool hasBingo = _checkBingo(checkIndex, b);
         if(hasBingo){
-            IERC20(feeAddress).transfer(_msgSender(), fees);
+            IERC20(feeAddress).transfer(_msgSender(), IERC20(feeAddress).balanceOf(address(this)));
             bool[255] memory nums;
-            Round memory r = Round(block.timestamp, nums);
+            Round memory r = Round(block.timestamp+minJoin, block.timestamp, nums);
             rounds.push(r);
         }
     }
@@ -88,6 +87,22 @@ contract Bingo is Ownable {
 
     function getRound(uint index) public view returns(Round memory){
         return rounds[index];
+    }
+
+    function getMinJoinTime() public view returns(uint256){
+        return minJoin;
+    }
+
+    function getMinDrawDuration() public view returns(uint256){
+        return minDrawDuration;
+    }
+
+    function getBoardFee() public view returns(uint256){
+        return feeAmount;
+    }
+
+    function fees() public view returns(uint256){
+       return IERC20(feeAddress).balanceOf(address(this));
     }
 
     //***************************************************************** SETTERS ************************************************************** */

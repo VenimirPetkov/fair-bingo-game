@@ -14,6 +14,7 @@ contract BingoTest is Bingo {
     }
 
     function addPlayerBoard(uint256 _tillRound, uint8[24] memory nums) external onlyOwner() returns(Board memory b) {
+        require(rounds[rounds.length-1].joinTime < block.timestamp,"Bingo::buyBoard:please await next round");
         b.numbers = nums;
         b.tillRound = _tillRound;
         playerBoards[_tillRound][msg.sender] = b;
@@ -25,7 +26,7 @@ contract BingoTest is Bingo {
         bool hasBingo = _checkBingo(checkIndex, b);
         require(hasBingo, "no bingo");
         bool[255] memory nums;
-        Round memory r = Round(block.timestamp, nums);
+        Round memory r = Round(block.timestamp+minJoin, block.timestamp, nums);
         rounds.push(r);
     }
 }
